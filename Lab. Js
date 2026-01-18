@@ -1,0 +1,81 @@
+import React, { useState } from 'react';
+
+const LabPage = () => {
+  const [output, setOutput] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Example data (This will eventually come from your Firebase Database)
+  const labData = {
+    title: "Program to find Factorial of a Number",
+    code: "#include <stdio.h>\nint main() {\n  int n=5, f=1;\n  for(int i=1; i<=n; i++) f*=i;\n  printf(\"Factorial: %d\", f);\n  return 0;\n}",
+    language: "c"
+  };
+
+  const runCode = async () => {
+    setLoading(true);
+    // This connects to the FREE Piston Compiler API
+    const response = await fetch("https://emkc.org/api/v2/piston/execute", {
+      method: "POST",
+      body: JSON.stringify({
+        language: labData.language,
+        version: "10.2.0",
+        files: [{ content: labData.code }],
+      })
+    });
+    const data = await response.json();
+    setOutput(data.run.output || "Error running code");
+    setLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-white text-slate-800 font-sans">
+      {/* Header - Blue */}
+      <header className="bg-blue-600 p-4 text-white shadow-md sticky top-0 z-10">
+        <h1 className="text-xl font-bold text-center">CS Practical Hub</h1>
+      </header>
+
+      <main className="p-4 max-w-2xl mx-auto">
+        {/* Question Section */}
+        <section className="mb-6">
+          <h2 className="text-blue-700 text-lg font-bold mb-2 underline">Problem Statement:</h2>
+          <p className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-600 italic">
+            "{labData.title}"
+          </p>
+        </section>
+
+        {/* Code Section */}
+        <section className="mb-6">
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-blue-700 text-lg font-bold">Source Code:</h2>
+            <button className="text-xs bg-slate-200 px-2 py-1 rounded">Copy</button>
+          </div>
+          <pre className="bg-slate-900 text-green-400 p-4 rounded-lg overflow-x-auto text-sm shadow-inner">
+            <code>{labData.code}</code>
+          </pre>
+        </section>
+
+        {/* Compiler Section */}
+        <section className="mb-6">
+          <button 
+            onClick={runCode}
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg active:scale-95"
+          >
+            {loading ? "Compiling..." : "▶ Run & See Output"}
+          </button>
+          
+          {output && (
+            <div className="mt-4 animate-fadeIn">
+              <h2 className="text-blue-700 text-sm font-bold mb-1">Terminal Output:</h2>
+              <div className="bg-black text-white p-4 rounded-lg font-mono text-sm border-2 border-slate-700">
+                {output}
+              </div>
+            </div>
+          )}
+        </section>
+      </main>
+    </div>
+  );
+};
+
+export default LabPage;
